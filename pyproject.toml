@@ -1,0 +1,10 @@
+[project]
+name = "903-most-popular-song-plot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "datetime>=5.5",
+    "google-api-python-client>=2.157.0",
+]
