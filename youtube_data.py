@@ -1,5 +1,10 @@
 from googleapiclient.discovery import build
 from datetime import datetime
+import pandas as pd
+import os
+import dotenv
+
+dotenv.load_dotenv()
 
 def get_video_stats(video_id):
     """
@@ -9,12 +14,13 @@ def get_video_stats(video_id):
         video_id (str): YouTube video ID (e.g., 'dQw4w9WgXcQ' from https://www.youtube.com/watch?v=dQw4w9WgXcQ)
     
     Returns:
-        tuple: (view_count, upload_date) where:
-            - view_count (int): Number of views
+        tuple: (title, view_count, upload_date) where:
+            - title (str): Video title
+            - view_count (int): Number of views 
             - upload_date (str): Video upload date in YYYY-MM-DD format
     """
     # API credentials
-    API_KEY = 'AIzaSyAQUs8WjOoaFcJTwYjHuGsdZflwMDxF7NE'
+    API_KEY = os.getenv('YOUTUBE_API_KEY')
     
     try:
         # Create YouTube API client
@@ -33,21 +39,72 @@ def get_video_stats(video_id):
         
         # Extract data
         video_data = response['items'][0]
+        title = video_data['snippet']['title']
         view_count = int(video_data['statistics']['viewCount'])
         upload_date = video_data['snippet']['publishedAt'][:10]  # Get YYYY-MM-DD format
         
-        return view_count, upload_date
+        return title, view_count, upload_date
         
     except Exception as e:
         print(f"Error fetching video data: {str(e)}")
-        return None, None
+        return None, None, None
+
+def write_to_csv(video_id, title, views, upload_date):
+    """
+    Write YouTube video statistics back to data.csv file.
+    
+    Args:
+        video_id (str): YouTube video ID
+        title (str): Video title
+        views (int): View count
+        upload_date (str): Upload date in YYYY-MM-DD format
+    """
+    try:
+        # Read existing CSV file
+        df = pd.read_csv('data.csv')
+        df.columns = df.columns.str.strip()
+        
+        # Find the row with matching video_id
+        mask = df['youtube_id'] == video_id
+        
+        if mask.any():
+            # Update existing row
+            df.loc[mask, 'youtube_views'] = views
+            df.loc[mask, 'youtube_date'] = upload_date
+            
+            # Calculate and update views per day
+            days_since_upload = (datetime.now() - datetime.strptime(upload_date, '%Y-%m-%d')).days
+            views_per_day = round(views / days_since_upload) if days_since_upload > 0 else views
+            df.loc[mask, 'view per day'] = views_per_day
+            
+            # Write back to CSV
+            df.to_csv('data.csv', index=False)
+            print(f"Successfully updated statistics for video: {title}")
+        else:
+            print(f"Warning: No matching video ID found in CSV: {video_id}")
+            
+    except Exception as e:
+        print(f"Error writing to CSV: {str(e)}")
 
 # Example usage
 if __name__ == "__main__":
-    video_id = "DaQNnnU1DA4"
-    views, date = get_video_stats(video_id)
+    # Read CSV and strip whitespace from column names
+    df = pd.read_csv('data.csv')
+    df.columns = df.columns.str.strip()
     
-    if views and date:
-        print(f"Views as of {datetime.now().strftime('%Y-%m-%d')}: {views}")
-        print(f"Upload Date: {date}")
-        print(f"Views per day as of {datetime.now().strftime('%Y-%m-%d')}: {round(views / (datetime.now() - datetime.strptime(date, '%Y-%m-%d')).days)}")
+    # Get first non-empty youtube_id
+    # Get all non-empty youtube_ids
+    video_ids = df[df['youtube_id'].notna()]['youtube_id']
+    
+    # Iterate through each video ID
+    for video_id in video_ids:
+        title, views, date = get_video_stats(video_id)
+        
+        if views and date:
+            print(f"--------------------------------")
+            print(f"Title: {title}")
+            print(f"Video ID: {video_id}")
+            print(f"Views as of {datetime.now().strftime('%Y-%m-%d')}: {views}")
+            print(f"Upload Date: {date}")
+            print(f"Views per day as of {datetime.now().strftime('%Y-%m-%d')}: {round(views / (datetime.now() - datetime.strptime(date, '%Y-%m-%d')).days)}")
+            write_to_csv(video_id, title, views, date)
