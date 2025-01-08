@@ -2,35 +2,17 @@
 YouTube Music Popularity Visualization
 
 This script creates a dual-axis bar plot comparing daily views and total votes
-for popular YouTube songs. It includes advanced visualization features and
-data validation.
+for popular YouTube songs using Plotly.
 """
 
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.graph_objects as go
 from typing import Optional
 import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Visualization settings
-COLORS = {
-    'views': '#1f77b4',  # Muted blue
-    'votes': '#d62728',  # Brick red
-    'background': '#f7f7f7',
-    'grid': '#dddddd'
-}
-
-# Set style and font for CJK characters with robust fallbacks
-sns.set_theme(style="whitegrid", rc={
-    'axes.facecolor': COLORS['background'],
-    'grid.color': COLORS['grid']
-})
-plt.rcParams['font.family'] = ['Hiragino Sans', 'Arial Unicode MS', 'sans-serif']
-plt.rcParams['font.sans-serif'] = ['Hiragino Sans', 'Arial Unicode MS', 'sans-serif']
 
 def validate_data(df: pd.DataFrame) -> pd.DataFrame:
     """Validate and clean the input data."""
@@ -58,9 +40,9 @@ def validate_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def normalize_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Normalize the data to percentages relative to 'Hey Hey OK OK'."""
-    # Get reference values from 'Hey Hey OK OK'
-    reference_song = df[df['Title'] == '《Hey Hey OK!》'].iloc[0]
+    """Normalize the data to percentages relative to the song with highest views per day."""
+    # Get reference values from song with highest views per day
+    reference_song = df.loc[df['view per day'].idxmax()]
     reference_views = reference_song['view per day']
     reference_votes = reference_song['Total']
     
@@ -76,13 +58,16 @@ def normalize_data(df: pd.DataFrame) -> pd.DataFrame:
     
     return df
 
-def create_dual_axis_plot(df: pd.DataFrame, output_path: Optional[str] = 'plot.png') -> None:
+def create_dual_axis_plot(df: pd.DataFrame, output_path: Optional[str] = None) -> go.Figure:
     """
-    Create a plot comparing normalized views per day and total votes.
+    Create a plot comparing normalized views per day and total votes using Plotly.
     
     Args:
         df: DataFrame containing song data
-        output_path: Optional path to save the plot (default: 'plot.png')
+        output_path: Optional path to save the plot
+    
+    Returns:
+        go.Figure: Plotly figure object
     """
     try:
         # Validate and prepare data
@@ -90,89 +75,98 @@ def create_dual_axis_plot(df: pd.DataFrame, output_path: Optional[str] = 'plot.p
         df = normalize_data(df)
         
         # Create figure
-        fig, ax = plt.subplots(figsize=(16, 8))
+        fig = go.Figure()
         
-        # Set positions and width
-        x = range(len(df))
-        width = 0.35
+        # Add views bars
+        fig.add_trace(go.Bar(
+            name='MV 每日觀看次數',
+            x=df['Title'],
+            y=df['normalized_views'],
+            text=df['normalized_views'].round(0).astype(str) + '%',
+            textposition='outside',
+            marker_color='#1f77b4',
+            opacity=0.8,
+            offsetgroup=0,
+            hovertemplate='Views per day: %{customdata:,.0f}<extra></extra>',
+            customdata=df['view per day']
+        ))
         
-        # Plot normalized views per day and total votes
-        views_bars = ax.bar(
-            [i - width/2 for i in x], df['normalized_views'],
-            width, color=COLORS['views'], alpha=0.8, label='Views/Day (Normalized)'
+        # Add votes bars
+        fig.add_trace(go.Bar(
+            name='Total Votes (Normalized)',
+            x=df['Title'],
+            y=df['normalized_votes'],
+            text=df['normalized_votes'].round(0).astype(str) + '%',
+            textposition='outside',
+            marker_color='#d62728',
+            opacity=0.8,
+            offsetgroup=1,
+            hovertemplate='叱吒場內總票數: %{customdata:,.0f}<extra></extra>',
+            customdata=df['Total']
+        ))
+        
+        # Add difference annotations for all songs
+        for i, row in df.iterrows():
+            # Determine colors based on difference magnitude
+            if row['proportion_difference'] > 0:
+                color = '#2ecc71' if abs(row['proportion_difference']) > 10 else '#27ae60'  # Bright/dark green
+            else:
+                color = '#e74c3c' if abs(row['proportion_difference']) > 10 else '#c0392b'  # Bright/dark red
+                
+            fig.add_annotation(
+                x=row['Title'],
+                y=max(row['normalized_views'], row['normalized_votes']) + 2,
+                text=f"Δ{row['proportion_difference']:+.0f}%",
+                showarrow=True,
+                arrowhead=2,
+                arrowsize=1,
+                arrowwidth=2,
+                arrowcolor=color,
+                font=dict(
+                    color=color,
+                    size=12,
+                    weight='bold'
+                ),
+                bordercolor=color,
+                borderwidth=2,
+                borderpad=4,
+                bgcolor='white',
+                opacity=0.9
+            )
+        
+        # Update layout
+        fig.update_layout(
+            title='叱咤 903 我最喜愛歌曲票數比例 與 YouTube MV 觀看次數比例',
+            xaxis_title='歌曲',
+            yaxis_title='標準化值',
+            barmode='group',
+            bargap=0.15,
+            bargroupgap=0.1,
+            showlegend=True,
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="right",
+                x=0.99
+            ),
+            xaxis=dict(
+                tickangle=45
+            ),
+            yaxis=dict(
+                ticksuffix='%'
+            ),
+            plot_bgcolor='#f7f7f7',
+            width=1000,
+            height=600
         )
         
-        votes_bars = ax.bar(
-            [i + width/2 for i in x], df['normalized_votes'],
-            width, color=COLORS['votes'], alpha=0.8, label='Total Votes (Normalized)'
-        )
-        
-        # Configure axis
-        ax.set_xlabel('Songs', fontsize=12, labelpad=15)
-        ax.set_ylabel('Normalized Values', fontsize=12)
-        
-        # Format y-axis to show percentages (without multiplying by 100)
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x:.0f}%'))
-        ax.tick_params(axis='both', which='major', labelsize=10)
-        
-        # Add value labels
-        for bar in views_bars:
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height,
-                   f'{height:.0f}%', ha='center', va='bottom',
-                   fontsize=8, color=COLORS['views'])
-        
-        for bar in votes_bars:
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height,
-                   f'{height:.0f}%', ha='center', va='bottom',
-                   fontsize=8, color=COLORS['votes'])
-        
-        # Configure x-axis
-        plt.xticks(x, df['Title'], rotation=45, ha='right', fontsize=10)
-        
-        # Add legend
-        ax.legend(loc='upper right', fontsize=11)
-        
-        # Add title and adjust layout
-        plt.title('叱咤 903 我最喜愛歌曲票數比例 與 YouTube MV 觀看次數比例',
-                 pad=25, fontsize=14)
-        plt.tight_layout()
-        
-        # Add difference labels between the bars
-        for i in range(len(df)):
-            diff = df['proportion_difference'].iloc[i]
-            x_pos = i
-            y_pos = max(df['normalized_views'].iloc[i], df['normalized_votes'].iloc[i])
-            color = 'green' if diff > 0 else 'red'
-            if abs(diff) > 5:  # Only show differences greater than 5%
-                ax.text(x_pos, y_pos + 2, 
-                       f'Δ{diff:+.0f}%', 
-                       ha='center', va='bottom',
-                       color=color, fontsize=8, fontweight='bold')
-        
-        # Save and show plot
+        # Save if path provided
         if output_path:
-            plt.savefig(output_path, bbox_inches='tight', dpi=300)
+            fig.write_image(output_path)
             logger.info(f"Plot saved to {output_path}")
-        plt.show()
-        plt.close()
+        
+        return fig
         
     except Exception as e:
         logger.error(f"Error creating plot: {str(e)}")
-        raise
-
-if __name__ == "__main__":
-    try:
-        # Read and process data
-        df = pd.read_csv('data.csv', skipinitialspace=True)
-        
-        df = df[df['Year'] == 2024]       
-        
-        # Create and save plot
-        df = normalize_data(df)
-        create_dual_axis_plot(df)
-        
-    except Exception as e:
-        logger.error(f"Script execution failed: {str(e)}")
         raise

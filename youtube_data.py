@@ -85,26 +85,3 @@ def write_to_csv(video_id, title, views, upload_date):
             
     except Exception as e:
         print(f"Error writing to CSV: {str(e)}")
-
-# Example usage
-if __name__ == "__main__":
-    # Read CSV and strip whitespace from column names
-    df = pd.read_csv('data.csv')
-    df.columns = df.columns.str.strip()
-    
-    # Get first non-empty youtube_id
-    # Get all non-empty youtube_ids
-    video_ids = df[df['youtube_id'].notna()]['youtube_id']
-    
-    # Iterate through each video ID
-    for video_id in video_ids:
-        title, views, date = get_video_stats(video_id)
-        
-        if views and date:
-            print(f"--------------------------------")
-            print(f"Title: {title}")
-            print(f"Video ID: {video_id}")
-            print(f"Views as of {datetime.now().strftime('%Y-%m-%d')}: {views}")
-            print(f"Upload Date: {date}")
-            print(f"Views per day as of {datetime.now().strftime('%Y-%m-%d')}: {round(views / (datetime.now() - datetime.strptime(date, '%Y-%m-%d')).days)}")
-            write_to_csv(video_id, title, views, date)

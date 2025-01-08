@@ -27,6 +27,8 @@ httplib2==0.22.0
     #   google-auth-httplib2
 idna==3.10
     # via requests
+plotly==5.19.0
+    # via 903-most-popular-song-plot (pyproject.toml)
 proto-plus==1.25.0
     # via google-api-core
 protobuf==5.29.2
@@ -50,6 +52,8 @@ rsa==4.9
     # via google-auth
 setuptools==75.6.0
     # via zope-interface
+streamlit==1.0.0
+    # via 903-most-popular-song-plot (pyproject.toml)
 uritemplate==4.1.1
     # via google-api-python-client
 urllib3==2.3.0
