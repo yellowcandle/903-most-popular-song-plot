@@ -93,7 +93,7 @@ def create_dual_axis_plot(df: pd.DataFrame, output_path: Optional[str] = None) -
         
         # Add votes bars
         fig.add_trace(go.Bar(
-            name='Total Votes (Normalized)',
+            name='叱吒場內總票數',
             x=df['Title'],
             y=df['normalized_votes'],
             text=df['normalized_votes'].round(0).astype(str) + '%',
@@ -101,7 +101,7 @@ def create_dual_axis_plot(df: pd.DataFrame, output_path: Optional[str] = None) -
             marker_color='#d62728',
             opacity=0.8,
             offsetgroup=1,
-            hovertemplate='叱吒場內總票數: %{customdata:,.0f}<extra></extra>',
+            hovertemplate='叱咤場內總票數: %{customdata:,.0f}<extra></extra>',
             customdata=df['Total']
         ))
         
