@@ -5,12 +5,12 @@ from youtube_data import get_video_stats, write_to_csv
 from plot import create_dual_axis_plot
 
 # Cache the YouTube data fetching to avoid repeated API calls
-@st.cache_data(ttl=3600)  # Cache for 1 hour
+@st.cache_data(ttl=86400)  # Cache for 1 day
 def get_cached_video_stats(video_id):
     return get_video_stats(video_id)
 
 # Streamlit app
-st.set_page_config(page_title="YouTube Music Popularity", layout="wide")
+st.set_page_config(page_title="叱咤 903 我最喜愛歌曲票數比例 與 YouTube MV 觀看次數比例", layout="wide")
 
 # Title and description
 st.title("叱咤 903 我最喜愛歌曲票數比例 與 YouTube MV 觀看次數比例")
