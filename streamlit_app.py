@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 from youtube_data import get_video_stats, write_to_csv
 from plot import create_dual_axis_plot
 
