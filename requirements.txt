@@ -2,7 +2,7 @@
 #    uv pip compile pyproject.toml -o requirements.txt
 altair==5.5.0
     # via streamlit
-attrs==24.3.0
+attrs==25.3.0
     # via
     #   jsonschema
     #   referencing
@@ -12,7 +12,7 @@ cachetools==5.5.0
     # via
     #   google-auth
     #   streamlit
-certifi==2024.12.14
+certifi==2025.1.31
     # via requests
 charset-normalizer==3.4.1
     # via requests
@@ -58,7 +58,9 @@ markupsafe==3.0.2
 mdurl==0.1.2
     # via markdown-it-py
 narwhals==1.21.1
-    # via altair
+    # via
+    #   altair
+    #   plotly
 numpy==2.2.1
     # via
     #   pandas
@@ -75,17 +77,17 @@ pandas==2.2.3
     #   streamlit
 pillow==11.1.0
     # via streamlit
-plotly==5.24.1
+plotly==6.0.1
     # via 903-most-popular-song-plot (pyproject.toml)
 proto-plus==1.25.0
     # via google-api-core
-protobuf==5.29.2
+protobuf==5.29.4
     # via
     #   google-api-core
     #   googleapis-common-protos
     #   proto-plus
     #   streamlit
-pyarrow==18.1.0
+pyarrow==19.0.1
     # via streamlit
 pyasn1==0.6.1
     # via
@@ -99,15 +101,15 @@ pygments==2.19.1
     # via rich
 pyparsing==3.2.1
     # via httplib2
-python-dateutil==2.9.0.post0
+python-dateutil==2.9.0
     # via pandas
 python-dotenv==1.0.1
     # via 903-most-popular-song-plot (pyproject.toml)
-pytz==2024.2
+pytz==2025.2
     # via
     #   datetime
     #   pandas
-referencing==0.35.1
+referencing==0.36.2
     # via
     #   jsonschema
     #   jsonschema-specifications
@@ -117,13 +119,15 @@ requests==2.32.3
     #   streamlit
 rich==13.9.4
     # via streamlit
-rpds-py==0.22.3
+rpds-py==0.24.0
     # via
     #   jsonschema
     #   referencing
 rsa==4.9
     # via google-auth
-setuptools==75.6.0
+ruff==0.11.4
+    # via 903-most-popular-song-plot (pyproject.toml)
+setuptools==78.1.0
     # via zope-interface
 six==1.17.0
     # via python-dateutil
@@ -132,18 +136,16 @@ smmap==5.0.2
 streamlit==1.41.1
     # via 903-most-popular-song-plot (pyproject.toml)
 tenacity==9.0.0
-    # via
-    #   plotly
-    #   streamlit
+    # via streamlit
 toml==0.10.2
     # via streamlit
-tornado==6.4.2
+tornado==6.4
     # via streamlit
 typing-extensions==4.12.2
     # via
     #   altair
     #   streamlit
-tzdata==2024.2
+tzdata==2025.2
     # via pandas
 uritemplate==4.1.1
     # via google-api-python-client
