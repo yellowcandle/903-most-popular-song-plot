@@ -127,7 +127,7 @@ rsa==4.9
     # via google-auth
 ruff==0.11.4
     # via 903-most-popular-song-plot (pyproject.toml)
-setuptools==78.1.0
+setuptools==78.1.1
     # via zope-interface
 six==1.17.0
     # via python-dateutil
